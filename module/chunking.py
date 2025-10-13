@@ -14,19 +14,18 @@ class PyChunker:
     """A class that chunks python files based on common sperator, such as 'class' or 'def'. In the file's deepcopy, replace the content by a list of splitted text."""
 
     def __init__(self, file: dict):
-        self.file = file
+        self.file = deepcopy(file)
         self.splitter = RecursiveCharacterTextSplitter.from_language(
             language=Language.PYTHON, chunk_size=50, chunk_overlap=0
         )
 
     def chunk(self):
-        file_copy: dict = deepcopy(self.file)
-        content: str = file_copy["content"]
+        content: str = self.file["content"]
         docs: list[Document] = self.splitter(content)
         documents: list[str] = [doc.text for doc in docs]
 
-        file_copy["content"] = documents
-        return file_copy
+        self.file["content"] = documents
+        return self.file
 
 
 class NotebookChunker:
@@ -36,7 +35,7 @@ class NotebookChunker:
         if not os.path.exists("./temp"):
             os.mkdir("./temp")
 
-        self.file: dict = file
+        self.file: dict = deepcopy(file)
         self.rmd_to_ipynb: list[str] = ["jupytext", "--to", "notebook"]
         self.qmd_to_ipynb: list[str] = ["quarto", "convert"]
         self.file_path: str = self.file["name"] + self.file["extension"]
@@ -76,7 +75,6 @@ class NotebookChunker:
         os.remove("./temp")
 
     def chunk(self):
-        file_copy: dict = deepcopy(self.file)
         notebook_path: str = str(Path("./temp", self.file["name"] + ".ipynb"))
 
         self.convert()
@@ -89,5 +87,22 @@ class NotebookChunker:
                 if cell["cell_type"] in ["code", "markdown"]
             ]
 
-        file_copy["content"] = content
-        return file_copy
+        self.file["content"] = content
+        return self.file
+
+
+class TextChunker:
+    """A class for chunking text based on common text separators."""
+
+    def __init__(self, file: dict):
+        self.file: dict = deepcopy(file)
+        self.splitter = RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=0)
+        pass
+
+    def chunk(self):
+        content: str = self.file["content"]
+        docs = self.splitter.split_text(content)
+        documents: list[str] = [doc.text for doc in docs]
+
+        self.file["content"] = documents
+        return self.file
