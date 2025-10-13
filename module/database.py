@@ -42,6 +42,7 @@ class DatabaseWriter:
         self,
         ids_list: list[str],
         documents_list: list[str],
+        embeddings_list: list[list[float]],,
         metadatas_list: list[dict],
     ) -> None:
         """The main method of the writer object writing the provided information in the database as a side-effect.
@@ -49,29 +50,13 @@ class DatabaseWriter:
         Args:
             ids_list (list[str]): A list of unique ids, one per file.
             documents_list (list[str]): A list of documents to embed and then stores.
+            embeddings_list (list[list[float]]): A list of embedded vectors for each documents
             metadatas_list (list[dict]): A list of dictionaries, containing metadata information about the documents
 
         Returns: None"""
         self.collection.add(
-            ids=ids_list, documents=documents_list, metadatas=metadatas_list
+            ids=ids_list,
+            documents=documents_list,
+            embeddings=embeddings_list,
+            metadatas=metadatas_list,
         )
-
-
-# Add a collection (similar to a table) to the database.
-# 'embedding_function' defines the embedding model
-# INFO: Only need to be created once.
-database = Database()
-code_collection = database.client.create_collection(
-    name="code",
-    embedding_function=CodeEmbedder,
-    metadata={
-        "description": "A collection storing code files, e.g. '.py' or '.R' files."
-    },
-)
-
-notebook_collection = database.client.create_collection(
-    name="notebook",
-    metadata={
-        "description": "A collection storing mixes of code and textes, e.g. Jupyter Notebook, Quarto document."
-    },
-)
