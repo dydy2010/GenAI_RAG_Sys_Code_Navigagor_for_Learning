@@ -1,5 +1,9 @@
-
 .RData
 .Rhistory
 data/.DS_Store
 .DS_Store
+/.idea
+/chroma_db
+/data/chroma_db
+.xml
+.iml
