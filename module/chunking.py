@@ -7,7 +7,7 @@ from langchain_text_splitters import (
     Language,
     RecursiveCharacterTextSplitter,
 )
-from langchain.core import Document
+from langchain_core.documents import Document
 
 
 class PyChunker:
@@ -21,8 +21,7 @@ class PyChunker:
 
     def chunk(self):
         content: str = self.file["content"]
-        docs: list[Document] = self.splitter(content)
-        documents: list[str] = [doc.text for doc in docs]
+        documents: list[str] = self.splitter.split_text(content)
 
         self.file["content"] = documents
         return self.file
@@ -101,8 +100,7 @@ class TextChunker:
 
     def chunk(self):
         content: str = self.file["content"]
-        docs = self.splitter.split_text(content)
-        documents: list[str] = [doc.text for doc in docs]
+        documents: list[str] = self.splitter.split_text(content)
 
         self.file["content"] = documents
         return self.file

@@ -35,14 +35,13 @@ class DatabaseWriter:
             collection_name (str): The collection name you wish to write information in."""
 
         self.client = database.client
-        self.collection = self.client(name=collection_name)
-        return self
+        self.collection = self.client.get_collection(name=collection_name)
 
     def write(
         self,
         ids_list: list[str],
         documents_list: list[str],
-        embeddings_list: list[list[float]],,
+        embeddings_list: list[list[float]],
         metadatas_list: list[dict],
     ) -> None:
         """The main method of the writer object writing the provided information in the database as a side-effect.
