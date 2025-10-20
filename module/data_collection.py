@@ -44,12 +44,11 @@ Args:
 """
 
 
-def get_information(path: Path, course: str) -> dict:
+def get_information(path: Path, course: str, content=None) -> dict:
     # Read the file information and stores it in a dictionary
     info = path.stat()
     # Read the content of the file as a string
-    content: str = path.read_text()
-    return {
+    file: dict = {
         "name": path.stem,
         "extension": path.suffix,
         "course": course,
@@ -66,8 +65,14 @@ def get_information(path: Path, course: str) -> dict:
         "st_birthtime": info.st_birthtime,
         "st_blocks": info.st_blocks,
         "st_blksize": info.st_blksize,
-        "content": content,
     }
+
+    if content is not None:
+        file.update({"content": content})
+    else:
+        content = path.read_text()
+        file.update({"content": content})
+    return file
 
 
 def to_json(obj: dict, file_name: str) -> None:
@@ -108,6 +113,13 @@ if __name__ == "__main__":
         )  # '**/*/' allows for a recursive search throughout the directory
         # Read the file information and stores it in a dictionary
         for path in path_list:
-            records = get_information(path, course)
-            file_path = f"{str(to_dir)}/{path.stem}.json"
-            to_json(records, file_path)
+            if Path(path).suffix == ".ipynb":
+                with open(path, "r") as fp:
+                    notebook = json.load(fp)
+                records = get_information(path, course, content=notebook)
+                file_path = f"{str(to_dir)}/{path.stem}.json"
+                to_json(records, file_path)
+            else:
+                records = get_information(path, course)
+                file_path = f"{str(to_dir)}/{path.stem}.json"
+                to_json(records, file_path)
