@@ -19,7 +19,7 @@ import os
 # LangSmith Configuration
 os.environ['LANGCHAIN_TRACING_V2'] = 'true'
 os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
-os.environ['LANGCHAIN_API_KEY'] = 'pls add your api key here'
+os.environ['LANGCHAIN_API_KEY'] = 'your_api_key'
 os.environ['LANGCHAIN_PROJECT'] = 'rag-project'  # Name your project for organization
 
 print("✓ LangSmith tracing enabled")
