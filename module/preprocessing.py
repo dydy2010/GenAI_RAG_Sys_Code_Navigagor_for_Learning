@@ -78,7 +78,7 @@ import os
 import subprocess
 from copy import deepcopy
 
-from module.database import CloudDatabase, LocalDatabase, DatabaseWriter
+from module.database import Database, DatabaseWriter
 from langchain_text_splitters import (
     Language,
     RecursiveCharacterTextSplitter,
