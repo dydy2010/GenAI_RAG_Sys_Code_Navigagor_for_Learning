@@ -78,7 +78,7 @@ import os
 import subprocess
 from copy import deepcopy
 
-from module.database import Database, DatabaseWriter
+from module.database import CloudDatabase, LocalDatabase, DatabaseWriter
 from langchain_text_splitters import (
     Language,
     RecursiveCharacterTextSplitter,
@@ -311,7 +311,7 @@ class DataPreprocessor:
     Example:
         >>> from pathlib import Path
         >>> files = [str(p) for p in Path("./data/parsed").glob("*.json")]
-        >>> preprocessor = DataPreprocessor(files)
+        >>> preprocessor = DataPreprocessor(files, database)
         >>> preprocessor.prepare()  # Process all files
     """
 
@@ -319,7 +319,7 @@ class DataPreprocessor:
     # Starts at 0 and increments with each next() call
     count = itertools.count(0)
 
-    def __init__(self, path_files: list[str]):
+    def __init__(self, path_files: list[str], database: Database):
         """
         Initialize the DataPreprocessor with file paths and required components.
 
@@ -331,10 +331,10 @@ class DataPreprocessor:
         Args:
             path_files (list[str]): List of paths to JSON files to process.
                                    Each file should contain parsed code/notebook data.
+            database (Database): A dataclass containing the connection to the database.
 
         Note:
             - Chunk size is set to 50 characters (may need adjustment for production)
-            - Database collection is hardcoded as "database"
         """
         # Initialize the embedding model (8B parameter model from Qwen)
         # This model is optimized for both code and text retrieval tasks
@@ -351,12 +351,9 @@ class DataPreprocessor:
             chunk_overlap=0,  # No overlap between adjacent chunks
         )
 
-        # Initialize generic text splitter for R code
         # Uses same chunk parameters as Python splitter
         self.r_splitter = RecursiveCharacterTextSplitter(chunk_size=50, chunk_overlap=0)
 
-        # Initialize database connection and writer
-        database: Database = Database()
         # Create writer for the "database" collection in ChromaDB
         self.writer: DatabaseWriter = DatabaseWriter(database, "database")
 
