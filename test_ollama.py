@@ -23,6 +23,7 @@ https://docs.ragas.io/en/stable/
 #%% Cell 1
 # pip install ragas pandas tqdm
 # pip install -U langchain-chroma
+# ollama pull phi3:medium
 # pip install openai
 
 import os
