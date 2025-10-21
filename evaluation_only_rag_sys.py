@@ -15,15 +15,15 @@ it would re-run the entire script from scratch, including the process of process
 import os
 import json
 from pathlib import Path
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langsmith import traceable
+from langchain.chains import RetrievalQA
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
-from langchain.docstore.document import Document
+from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.llms import Ollama
-from langchain.chains import RetrievalQA
-from langchain.prompts import PromptTemplate
-from langsmith import traceable
+from langchain_core.prompts import PromptTemplate
 
 # --- Prerequisite ---
 # LangSmith Configuration
@@ -143,7 +143,7 @@ if __name__ == '__main__':
     # Set up LangSmith if you haven't set it in your environment
     os.environ['LANGCHAIN_TRACING_V2'] = 'true'
     os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
-    os.environ['LANGCHAIN_API_KEY'] = 'give your api key pls'
+    os.environ['LANGCHAIN_API_KEY'] = 'Replace with your key'
     os.environ['LANGCHAIN_PROJECT'] = 'rag-project'
 
     my_qa_chain = setup_rag_chain()

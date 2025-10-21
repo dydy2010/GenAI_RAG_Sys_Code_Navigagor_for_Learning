@@ -117,7 +117,7 @@ print("Configuring Ragas with OpenAI API...")
 from langchain_openai import ChatOpenAI
 
 # Set your OpenAI API key
-os.environ["OPENAI_API_KEY"] = "type in pls your api, and DELETE before commit"
+os.environ["OPENAI_API_KEY"] = "Replace with your key"
 # Replace with your key
 
 # Use faster, cheaper model for evaluation
@@ -160,7 +160,7 @@ for i in tqdm(range(len(dataset)), desc="Evaluating Questions"):
         'ground_truth_context': [row['ground_truth_context']]
     })
 
-    question_results = {"question": row['question']}
+    question_results = row.copy()  # Copy all input data (question, answer, contexts, etc.)
 
     # Loop 2: Iterate through each metric, one by one
     for metric in tqdm(metrics, desc=f"  Metrics Q{i+1}", leave=False):
@@ -238,7 +238,43 @@ else:
     print("\n✅ All evaluations completed successfully with no missing values!")
 
 # --- IMPROVEMENT: Save the clean results with a dynamic filename ---
+# --- Save Results ---
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+# 1. Save the original clean results (the metrics summary you have now)
 output_file = f"ragas_evaluation_results_{timestamp}.csv"
 df_clean.to_csv(output_file, index=False)
 print(f"\nClean results saved to {output_file}")
+
+# 2. Save the new, detailed "full report" in the format you want
+
+# Define the columns we want to rename for your format
+column_rename_map = {
+    "question": "user_input",
+    "answer": "response",
+    "contexts": "retrieved_contexts",
+    "ground_truth": "reference"
+}
+
+# Create the new report by renaming columns from df_clean
+df_full_report = df_clean.rename(columns=column_rename_map)
+
+# Get all metric names
+metric_cols = [m.name for m in metrics]
+
+# Define the final desired order for your columns
+desired_columns = [
+    "user_input", 
+    "retrieved_contexts", 
+    "response", 
+    "reference"
+] + metric_cols
+
+# Reorder columns (and this will also drop any extras, like 'ground_truth_context')
+df_full_report = df_full_report[desired_columns]
+
+# Save this new, detailed report to a different file
+report_file = f"ragas_full_report_{timestamp}.csv"
+df_full_report.to_csv(report_file, index=False)
+
+print(f"\nFull, detailed report saved to {report_file}")
