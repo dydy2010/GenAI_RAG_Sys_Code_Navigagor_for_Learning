@@ -50,7 +50,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 # ------------------------------------------------------------------
 print("Importing RAG_sys_eval_only and eval dataset...")
 
-from evaluation_only_rag_sys import setup_rag_chain, OLLAMA_MODEL, EMBEDDING_MODEL
+from Evaluation_Only_RAG_Sys import setup_rag_chain, OLLAMA_MODEL, EMBEDDING_MODEL
 from Evaluation_Dataset import test_questions
 
 # Initialize the RAG chain once
