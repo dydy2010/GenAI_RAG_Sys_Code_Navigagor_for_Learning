@@ -66,7 +66,7 @@ except ImportError:
 
 class RAGConfig:
     # Folder paths
-    JSON_FOLDER = "../data/parsed"           # Go UP one level
+    JSON_FOLDER = "/Users/cyrielvanhelleputte/Downloads/SCHOOL/Courses 2nd Semester/GenAI/chroma-db"           # Go UP one level
     PDF_FOLDER = "../data/raw/Materials_code_learning"
     CHROMA_DIR = "../chroma-db"              # NOTE: chroma-db (hyphen!)
     
