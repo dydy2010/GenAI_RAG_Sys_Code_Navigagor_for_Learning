@@ -93,11 +93,13 @@ for file in eval_files:
 
 print("=" * 40)
 
-# Check for data and database
+
+from RAG_Core import RAGConfig
+
 data_checks = [
-    ("./data/parsed", "JSON code files"),
-    ("./data/raw/Materials_code_learning", "PDF lecture files"),
-    ("./chroma_db", "Vector database")
+    (RAGConfig.JSON_FOLDER, "JSON code files"),
+    (RAGConfig.PDF_FOLDER, "PDF lecture files"),
+    (RAGConfig.CHROMA_DIR, "Vector database")
 ]
 
 print("\n💾 Checking data availability:")
