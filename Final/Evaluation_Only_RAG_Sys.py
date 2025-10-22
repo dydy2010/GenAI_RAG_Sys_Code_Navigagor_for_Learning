@@ -5,8 +5,7 @@ Simplified RAG system for evaluation - uses unified rag_core.py
 This ensures evaluation tests the EXACT same system as users experience
 """
 
-from rag_core import setup_rag_chain, RAGConfig, OLLAMA_MODEL, EMBEDDING_MODEL
-
+from RAG_Core import setup_rag_chain, RAGConfig, OLLAMA_MODEL, EMBEDDING_MODEL
 # Re-export for backward compatibility with evaluate_ragas.py
 __all__ = ['setup_rag_chain', 'OLLAMA_MODEL', 'EMBEDDING_MODEL']
 
