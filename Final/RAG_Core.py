@@ -1,5 +1,5 @@
 """
-rag_core.py
+RAG_Core.py
 Unified RAG System Core - Single Source of Truth
 
 Consolidates:
