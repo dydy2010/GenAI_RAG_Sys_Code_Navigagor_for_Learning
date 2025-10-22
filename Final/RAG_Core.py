@@ -65,8 +65,6 @@ except ImportError:
 # ============================================================================
 
 class RAGConfig:
-    """Centralized configuration for RAG system"""
-    
     # Folder paths
     JSON_FOLDER = "./data/parsed"
     PDF_FOLDER = "./data/raw/Materials_code_learning"
