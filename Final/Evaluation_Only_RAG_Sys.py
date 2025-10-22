@@ -1,5 +1,5 @@
 """
-evaluation_only_rag_sys.py
+Evaluation_Only_RAG_Sys.py
 Simplified RAG system for evaluation - uses unified rag_core.py
 
 This ensures evaluation tests the EXACT same system as users experience
