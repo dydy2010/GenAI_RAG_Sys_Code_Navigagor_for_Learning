@@ -49,7 +49,7 @@ if rag_core_path.exists():
     
     # Try importing rag_core
     try:
-        import rag_core
+        import RAG_Core as rag_core
         print(f"✅ rag_core.py imports successfully")
         
         # Check for required functions
