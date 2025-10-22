@@ -9,7 +9,7 @@ import streamlit as st
 from pathlib import Path
 
 # Import from shared core
-from rag_core import (
+from RAG_Core import (
     RAGConfig,
     setup_rag_chain,
     create_vectorstore,
