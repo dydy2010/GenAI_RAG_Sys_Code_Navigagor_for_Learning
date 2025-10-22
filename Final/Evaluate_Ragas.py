@@ -1,5 +1,5 @@
 """
-evaluate_ragas.py
+Evaluate_Ragas.py
 The Theoretical Aspects of RAG Evaluation
 
 1. There is one critical concept: The Golden Dataset. To define it:
