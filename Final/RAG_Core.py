@@ -66,9 +66,9 @@ except ImportError:
 
 class RAGConfig:
     # Folder paths
-    JSON_FOLDER = "./data/parsed"
-    PDF_FOLDER = "./data/raw/Materials_code_learning"
-    CHROMA_DIR = "./chroma_db"
+    JSON_FOLDER = "../data/parsed"           # Go UP one level
+    PDF_FOLDER = "../data/raw/Materials_code_learning"
+    CHROMA_DIR = "../chroma-db"              # NOTE: chroma-db (hyphen!)
     
     # Models
     EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
