@@ -43,7 +43,7 @@ for package in critical:
 print("=" * 40)
 
 # Check for rag_core.py
-rag_core_path = Path("rag_core.py")
+rag_core_path = Path("RAG_Core.py")
 if rag_core_path.exists():
     print(f"✅ rag_core.py found")
     
