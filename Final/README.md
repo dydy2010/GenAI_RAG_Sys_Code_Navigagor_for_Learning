@@ -435,6 +435,11 @@ streamlit run Streamlit_App.py
    ```
 
 3. **Install Evaluation Dependencies**
+   PLEASE set up a SEPARATE .venv environment than the RAG environment,
+   to avoid library version conflicts. You can name it .venv_eval.
+   
+   Please also see if you have python3 already installed in this environment.
+
    ```bash
    pip install -r requirements_eval.txt
    ```
@@ -445,15 +450,17 @@ streamlit run Streamlit_App.py
    ```
 
 4. **Verify Setup**
+Please verify with this script if you have the correct setup. 
+
    ```bash
-   python check_eval.py
+   python3 check_eval.py
    ```
 
 ### Run Evaluation
 
 ```bash
 cd Final/Evaluation
-python Evaluate_Ragas.py
+python3 Evaluate_Ragas.py
 ```
 
 This will:
