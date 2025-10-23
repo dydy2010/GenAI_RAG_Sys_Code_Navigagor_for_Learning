@@ -1,0 +1,56 @@
+# Requirements for RAGAS Evaluation Environment
+# This file contains ONLY evaluation dependencies
+# Install in separate virtual environment: .venv_eval
+
+# ============================================================================
+# CORE EVALUATION FRAMEWORK
+# ============================================================================
+ragas==0.1.8
+
+# OpenAI for RAGAS metrics evaluation
+openai==1.30.2
+langchain-openai==0.1.6
+
+# ============================================================================
+# DATA HANDLING FOR EVALUATION
+# ============================================================================
+pandas==2.2.1
+datasets==2.18.0
+tqdm==4.66.1
+
+# ============================================================================
+# LANGCHAIN (Compatible versions with RAGAS)
+# ============================================================================
+# CRITICAL: These versions must be compatible with RAGAS 0.1.8
+langchain==0.2.7
+langchain-core==0.2.7
+langchain-community==0.2.7
+langchain-huggingface==0.0.2
+langchain-text-splitters==0.2.2
+
+# ============================================================================
+# VECTOR STORE & EMBEDDINGS (Same as production)
+# ============================================================================
+chromadb==0.4.24
+sentence-transformers==2.7.0
+huggingface-hub==0.23.2
+
+# ============================================================================
+# DOCUMENT PROCESSING (Same as production)
+# ============================================================================
+pymupdf==1.24.5
+
+# ============================================================================
+# UTILITIES
+# ============================================================================
+langsmith==0.1.75
+python-dotenv==1.0.0
+
+# ============================================================================
+# NOTES
+# ============================================================================
+# 1. This environment is ONLY for running evaluation
+# 2. Production code should use requirements.txt (not this file)
+# 3. RAG_Core_Compat.py bridges the two environments
+# 4. Ollama must be installed separately: curl https://ollama.ai/install.sh | sh
+# 5. OpenAI API key required: Set OPENAI_API_KEY environment variable

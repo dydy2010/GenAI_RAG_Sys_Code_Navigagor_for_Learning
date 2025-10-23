@@ -65,14 +65,20 @@ except ImportError:
 # ============================================================================
 
 class RAGConfig:
-    # Folder paths
-    JSON_FOLDER = "/Users/cyrielvanhelleputte/Downloads/SCHOOL/Courses 2nd Semester/GenAI/chroma-db"           # Go UP one level
-    PDF_FOLDER = "../data/raw/Materials_code_learning"
-    CHROMA_DIR = "../chroma-db"              # NOTE: chroma-db (hyphen!)
+    """Centralized configuration for RAG system"""
+    
+    # Get base directory (Final/)
+    BASE_DIR = Path(__file__).parent.absolute()
+    
+    # Folder paths relative to your project
+    JSON_FOLDER = str(BASE_DIR.parent / "module" / "processed_json")  # Adjust if needed
+    PDF_FOLDER = str(BASE_DIR.parent / "data" / "raw" / "material_code_learning")
+    CHROMA_DIR = str(BASE_DIR / "chroma-db")
     
     # Models
     EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
     OLLAMA_MODEL = "llama3.2"
+    
     
     # Processing settings
     CHUNK_SIZE = 1500
