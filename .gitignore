@@ -1,6 +1,7 @@
 # 1. Secrets
 # Never commit your API keys or other secrets
 .env
+Final/Evaluation/.env
 
 # 2. Virtual Environments
 # Ignore all virtual environment folders (we've used a few!)
@@ -29,3 +30,4 @@ __pycache__/
 # 7. Mac OS Files
 # Standard Mac system file
 .DS_Store
+
