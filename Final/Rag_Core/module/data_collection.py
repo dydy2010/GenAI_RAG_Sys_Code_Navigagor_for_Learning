@@ -1,4 +1,5 @@
 from pathlib import Path
+from PyPDF2 import PdfReader
 import json
 import sys
 
@@ -79,20 +80,18 @@ def to_json(obj: dict, file_name: str) -> None:
     with open(f"{file_name}", "w") as fp:
         # Write the recorded information in a JSON file.
         # Has the same name as the original file
-        json.dump(obj, fp)
+        json.dump(obj, fp, ensure_ascii=False)
 
 
 if __name__ == "__main__":
     # Extensions you want to capture
-    extensions: list[str] = [".py", ".R", ".ipynb", ".qmd", ".Rmd"]
+    extensions: list[str] = [".py", ".R", ".ipynb", ".qmd", ".Rmd", ".pdf"]
     # First argument of the command
     from_path: str = sys.argv[1]
     # Second argument of the command
     course: str = sys.argv[2]
     # Third argumnet of the command
     to_path: str = sys.argv[3]
-    # Extensions you want to capture
-    extensions = [".py", ".R", ".ipynb", ".qmd", ".Rmd"]
 
     from_dir = Path(from_path)
     to_dir = Path(to_path)
@@ -113,10 +112,23 @@ if __name__ == "__main__":
         )  # '**/*/' allows for a recursive search throughout the directory
         # Read the file information and stores it in a dictionary
         for path in path_list:
+            # Check wether the file is a JupyterNotebook
             if Path(path).suffix == ".ipynb":
+                # Load the notebook content inside a python dictionary
                 with open(path, "r") as fp:
                     notebook = json.load(fp)
+                # Get the file information and make sure that the content is a dictionary, instead of texts
                 records = get_information(path, course, content=notebook)
+                file_path = f"{str(to_dir)}/{path.stem}.json"
+                to_json(records, file_path)
+            # Check wehter the file is a PDF.
+            elif Path(path).suffix == ".pdf":
+                # Instantiate and parse the PDF
+                reader = PdfReader(path)
+                # Construct a final string containing the whole file's content
+                text = "".join([page.extract_text() for page in reader.pages])
+                # Get the file information and make sure that the content is the text parsed using `PdfReader`
+                records = get_information(path, course, content=text)
                 file_path = f"{str(to_dir)}/{path.stem}.json"
                 to_json(records, file_path)
             else:
