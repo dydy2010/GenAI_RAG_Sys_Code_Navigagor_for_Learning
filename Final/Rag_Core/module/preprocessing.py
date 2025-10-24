@@ -374,7 +374,9 @@ class DataPreprocessor:
             - May create temporary files in ./temp directory (for notebooks)
         """
         # Iterate through each file path in the list
-        for path in self.path_files:
+        print("Preparing processing starts.")
+        for i, path in enumerate(self.path_files):
+            print(f"File {i}/{len(self.path_files)}")
             # Open and load the JSON file
             with open(path, "r") as f:
                 file = json.load(f)
