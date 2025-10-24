@@ -41,7 +41,7 @@ Usage Example:
     path_files = [str(f) for f in data_dir.glob("*.json")]
 
     # Initialize and run preprocessor
-    preprocessor = DataPreprocessor(path_files)
+    preprocessor = DataPreprocessor(path_files, database)
     preprocessor.prepare()
 
 Expected JSON Input Format:
@@ -248,16 +248,6 @@ class NotebookChunker:
             dict: The modified file dictionary with "content" now containing
                   a list of cell dictionaries in the format:
                   [{"code": "..."}, {"markdown": "..."}, ...]
-
-        Example:
-            >>> chunker = NotebookChunker(rmd_file)
-            >>> result = chunker.chunk()
-            >>> result["content"]
-            [
-                {"markdown": "# Analysis"},
-                {"code": "import pandas as pd"},
-                {"code": "df = pd.read_csv('data.csv')"}
-            ]
         """
         # Construct path to the converted .ipynb file
         # (conversion changes extension but keeps the name)
@@ -338,6 +328,7 @@ class DataPreprocessor:
         """
         # Initialize the embedding model (8B parameter model from Qwen)
         # This model is optimized for both code and text retrieval tasks
+        print("Loading or Downloading HuggingFace 'Qwen/Qwen3-Embedding-8B'")
         self.qwen_embedding = SentenceTransformer("Qwen/Qwen3-Embedding-8B")
 
         # Store the list of file paths to process
@@ -351,8 +342,16 @@ class DataPreprocessor:
             chunk_overlap=0,  # No overlap between adjacent chunks
         )
 
-        # Uses same chunk parameters as Python splitter
+        # Recursively separates R file based on common paragraph separators ("\n\n", "\n")
         self.r_splitter = RecursiveCharacterTextSplitter(chunk_size=50, chunk_overlap=0)
+
+        # Recursively separates text file based on common paragraph separators ("\n\n", "\n")
+        # Set up a larger chunk size since we're handling PDF's
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=200, chunk_overlap=30
+        )
+
+        # User
 
         # Create writer for the "database" collection in ChromaDB
         self.writer: DatabaseWriter = DatabaseWriter(database, "database")
@@ -367,16 +366,12 @@ class DataPreprocessor:
         3. Routes to the appropriate handler based on file extension
         4. Writes the resulting chunks and embeddings to the database
 
-        Supported extensions: .py, .R, .ipynb, .Rmd, .qmd
+        Supported extensions: .py, .R, .ipynb, .Rmd, .qmd, .pdf
 
         Side Effects:
             - Writes records to ChromaDB vector database
             - Prints warnings for unsupported file types
             - May create temporary files in ./temp directory (for notebooks)
-
-        Example:
-            >>> preprocessor = DataPreprocessor(["file1.json", "file2.json"])
-            >>> preprocessor.prepare()
         """
         # Iterate through each file path in the list
         for path in self.path_files:
@@ -407,6 +402,11 @@ class DataPreprocessor:
                 # Write records to ChromaDB
                 self.writer.write(**records)
 
+            elif extension == ".pdf":
+                records = self.pdf_route(file)
+
+                self.writer.write(**records)
+
             # Handle unsupported file types
             else:
                 print(
@@ -431,13 +431,6 @@ class DataPreprocessor:
                 - "documents_list": List of text chunks
                 - "embeddings_list": List of normalized embeddings (numpy arrays)
                 - "metadatas_list": List of metadata dicts (file info minus content)
-
-        Example:
-            >>> file = {"name": "script", "extension": ".py",
-            ...         "content": "def foo():\\n    pass"}
-            >>> records = preprocessor.python_route(file)
-            >>> len(records["documents_list"])  # Number of chunks created
-            2
         """
         # Split Python code into chunks using syntax-aware splitter
         splitted_content = self.python_splitter.split_text(file["content"])
@@ -480,11 +473,6 @@ class DataPreprocessor:
                 - "documents_list": List of text chunks
                 - "embeddings_list": List of normalized embeddings (numpy arrays)
                 - "metadatas_list": List of metadata dicts (file info minus content)
-
-        Example:
-            >>> file = {"name": "analysis", "extension": ".R",
-            ...         "content": "library(ggplot2)\\nplot(x, y)"}
-            >>> records = preprocessor.r_route(file)
         """
         # Split R code into chunks using generic text splitter
         splitted_content = self.r_splitter.split_text(file["content"])
@@ -535,13 +523,6 @@ class DataPreprocessor:
 
         Side Effects:
             Creates temporary files in ./temp directory during conversion
-
-        Example:
-            >>> file = {"name": "notebook", "extension": ".ipynb",
-            ...         "content": {...}}  # Jupyter notebook dict
-            >>> records = preprocessor.notebook_route(file)
-            >>> records["documents_list"][0]  # First cell content
-            "import pandas as pd"
         """
         # Initialize notebook chunker to handle conversion and cell extraction
         notebook_chunker: NotebookChunker = NotebookChunker(file)
@@ -583,3 +564,57 @@ class DataPreprocessor:
             ],
         }
         return records
+
+    def pdf_route(self, file: dict) -> dict:
+        """
+        Process PDF (.pdf) files: chunk, embed, and prepare database records.
+
+        Uses generic RecursiveCharacterTextSplitter with medium chunk size and overlap for text code chunking.
+
+        Args:
+            file (dict): File dictionary containing "content" key with text.
+
+        Returns:
+            dict: Database records dictionary with keys:
+                - "ids_list": List of unique string IDs
+                - "documents_list": List of text chunks
+                - "embeddings_list": List of normalized embeddings (numpy arrays)
+                - "metadatas_list": List of metadata dicts (file info minus content)
+        """
+
+        # Split pure text into chunks using text splitter.
+        splitted_content = self.text_splitter.split_text(file["content"])
+
+        # Generate normalized embeddings for each chunk
+        # normalize_embeddings=True scales vectors to unit length for cosine similarity
+        embeddings = self.qwen_embedding.encode(
+            splitted_content, normalize_embeddings=True
+        )
+        records = {
+            # Generate unique sequential IDs for each chunk
+            "ids_list": [str(next(self.count)) for _ in range(len(splitted_content))],
+            # The text chunks themselves
+            "documents_list": splitted_content,
+            # The embedding vectors for each chunk
+            "embeddings_list": embeddings,
+            # Metadata for each chunk (all file fields except content)
+            "metadatas_list": [
+                {k: v for k, v in file.items() if k != "content"}
+                for _ in range(len(splitted_content))
+            ],
+        }
+        return records
+
+
+data_dir = Path("/Users/robingirardin/hslu/rag-code-navigator/Final/data/parsed")
+
+path_files = [str(child) for child in data_dir.iterdir()]
+
+pdf_files = []
+for path in path_files:
+    print(path)
+    with open(path, "r") as f:
+        file = json.load(f)
+
+    if file["extension"] == ".pdf":
+        pdf_files.append(path)
