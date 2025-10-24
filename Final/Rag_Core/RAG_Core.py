@@ -54,10 +54,10 @@ class RAGConfig:
     # Folder paths
     JSON_FOLDER = "../parsed"
     PDF_FOLDER = "../data/raw/Materials_code_learning"
-    CHROMA_DIR = "../chroma-db"
+    CHROMA_DIR = "the ABSOLUTE path of the unzipped chroma-db folder"
     
     # Models
-    EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+    EMBEDDING_MODEL = "Qwen/Qwen3-Embedding-8B"
     OLLAMA_MODEL = "llama3.2"
     
     # Processing settings
@@ -149,7 +149,8 @@ def load_vectorstore(embeddings: HuggingFaceEmbeddings = None,
     try:
         vectorstore = Chroma(
             persist_directory=persist_directory,
-            embedding_function=embeddings
+            embedding_function=embeddings,
+            collection_name="database",
         )
         
         # Check if it has documents
