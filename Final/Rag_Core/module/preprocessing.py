@@ -606,17 +606,3 @@ class DataPreprocessor:
             ],
         }
         return records
-
-
-data_dir = Path("/Users/robingirardin/hslu/rag-code-navigator/Final/data/parsed")
-
-path_files = [str(child) for child in data_dir.iterdir()]
-
-pdf_files = []
-for path in path_files:
-    print(path)
-    with open(path, "r") as f:
-        file = json.load(f)
-
-    if file["extension"] == ".pdf":
-        pdf_files.append(path)
