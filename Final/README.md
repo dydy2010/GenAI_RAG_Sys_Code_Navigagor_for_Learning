@@ -422,67 +422,8 @@ streamlit run Streamlit_App.py
 
 ##  Evaluation with RAGAS
 
-### Setup Evaluation Environment
+### Please refer to the Evaluation/README.MD for detailed instructions.
 
-1. **Get OpenAI API Key**
-   - Visit: https://platform.openai.com/api-keys
-   - Create new key (starts with `sk-`)
-
-2. **Create .env File**
-   ```bash
-   cd Final/Evaluation
-   echo "OPENAI_API_KEY=sk-your-key-here" > .env
-   ```
-
-3. **Install Evaluation Dependencies**
-   PLEASE set up a SEPARATE .venv environment than the RAG environment,
-   to avoid library version conflicts. You can name it .venv_eval.
-   
-   Please also see if you have python3 already installed in this environment.
-
-   ```bash
-   pip install -r requirements_eval.txt
-   ```
-   
-   Or manually:
-   ```bash
-   pip install ragas langchain-openai openai datasets python-dotenv
-   ```
-
-4. **Verify Setup**
-Please verify with this script if you have the correct setup. 
-
-   ```bash
-   python3 check_eval.py
-   ```
-
-### Run Evaluation
-
-```bash
-cd Final/Evaluation
-python3 Evaluate_Ragas.py
-```
-
-This will:
-1. Load your RAG system
-2. Generate test questions (or use existing dataset)
-3. Get answers from the system
-4. Compute RAGAS metrics:
-   - **Faithfulness** (hallucination check)
-   - **Answer Relevancy** (question match)
-   - **Context Precision** (retrieval quality)
-   - **Context Recall** (completeness)
-5. Save results to `Results/ragas_evaluation_results_[timestamp].csv`
-
-### Understanding Results
-
-**Good scores (0-1 scale):**
-- Faithfulness: > 0.80
-- Answer Relevancy: > 0.75
-- Context Precision: > 0.70
-- Context Recall: > 0.70
-
-**Cost:** ~$0.05-0.10 for 10 questions (using GPT-3.5-turbo)
 
 ------------------------------------------------------------------------
 
