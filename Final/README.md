@@ -112,12 +112,12 @@ GenAI_RAG_Sys_Code_Navigator_for_Learning/
 │   │   ├── preprocessing.py
 │   │   ├── database.py
 │   ├── evaluation/
-│   ├── README.md 
-│   ├── Evaluation_Dataset.py 
-│   ├── check_eval.py 
-│   ├── evaluate_ragas.py 
-│   ├── setup_for_eval.sh 
-│   ├── evaluation_only_rag_sys.sh 
+│   │   ├── README.md
+│   │   ├── Evaluation_Dataset.py
+│   │   ├── check_eval.py
+│   │   ├── evaluate_ragas.py
+│   │   ├── setup_for_eval_sh
+│   │   ├── evaluation_only_rag_sys.py
 ├── chroma-db/ 
 ├── data/ 
 │   ├── raw/ 
