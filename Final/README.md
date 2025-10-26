@@ -89,6 +89,9 @@ Our system works in several phases:
 This `module/` subfolder contains the python code used at each step of the pipeline, as well as the streamlit application `module/streamlit_app.py`. Most notably, `module/rag_core.py` is the main script that runs the RAG system, `module/indexing/` is a sub-folder containins classes and script relevant to the RAG's indexing section. More specifically, `module/indexing/data_collection.py` is a python script that, given specified directories, scrapes for all '.py', '.R', '.ipynb', '.qmd', '.Rmd' and '.pdf' file, collects content and metadata, and finally stores this information inside a JSON file. 
 `module/indexing/database.py` contains classes pertaining to establishing the connection with the Chroma Database `chroma-db/` and writing information to it.
 
+The `module/evaluation/` folder contains code and instruction to run the RAG evaluation pipeline. 
+`module/evaluation/setup_for_eval.sh` create a proper python virtual environnement that will be used for the evaluation and install the correct dependencies.
+`module/evaluation/evaluation_only_rag_sys.py` is a script containing the RAG, while `module/evaluation/evaluate_ragas.py` is the evaluation script itself.
 The `chroma-db/` folder contains the vectorized database used throughout the project.
 
 The `data/` folder contains the `raw` and `parsed` data.
