@@ -1,19 +1,34 @@
 ## CodeRAG
 
 - **What it is**: RAG app to query your study code/PDFs with sources, for data science students.
-- **LLM**: Ollama (default: `llama3.2`), Qwen, OpenAI API
-- **Vector DB**: Chroma .
+- **LLM**: Ollama (default: `llama3.2`), OpenAI API
+- **Embedding**: Qwen-Embedding-8b trough HuggingFace 
+- **Vector DB**: Chroma.
 - **Evaluation**: RAGAS
-- **Data**: PDFs and source materials from university courses.
+- **Data**: PDFs, code files and source materials from university courses.
 
 ### Requirements
-- Python, Ollama running (`ollama serve`), model pulled: `ollama pull llama3.2`.
+- `requiremenets.txt`
+- Ollama running (`ollama serve`), model pulled: `ollama pull llama3.2`.
+- Enough computational power to support HuggingFace `Qwen/Qwen3-Embedding-8b` embedding model.
 - Optional: OpenAI key for evaluation (`Final/Evaluation/.env`).
 
+Specific requirement are tied to the RAG's evaluation.
+For more information, please read `module/evaluation/README.md`.
+
 ### Quick Start (App)
+
+For a quick start, you can run the command below to run the RAG on 2 prepared questions.
+
+Beware that, since everything relied on your machine ressources, processing might take some time. 
+
 ```bash
-cd Final/Rag_Core
-python RAG_Core.py            # CLI test
+python module/rag_core.py            # CLI test
+```
+
+Alternatively, you can also run the Streamlit app using the command below.
+
+```
 streamlit run Streamlit_App.py  # Web UI at http://localhost:8501
 ```
 
@@ -23,13 +38,6 @@ cd Final/Evaluation
 ./setup_for_eval.sh           # creates venvs, generates responses.json, runs eval
 ```
 Outputs: CSVs in `Final/Evaluation`.
-
-### Data paths (relative to Final/)
-- Vector store: `data/chroma_db` (Rag_Core uses `../chroma-db`)
-- Parsed JSON: `data/parsed`
-- PDFs: `data/raw/Materials_code_learning`
-
-GitHub: https://github.com/dydy2010/GenAI_RAG_Sys_Code_Navigagor_for_Learning
 
 # CodeRAG: The AI-Powered Code Navigator for Data Science Students
 
@@ -121,19 +129,12 @@ GenAI_RAG_Sys_Code_Navigator_for_Learning/
 
 ### Data Storage Architecture
 
-**Data lives in TWO places:**
+The data used by the RAG system is readily embedding and preprecossed inside `chroma-db/`.
 
-1. **PRIMARY: Local ChromaDB** (`Final/chroma-db/`)
-   - Main production database
-   - Contains all processed JSON embeddings
-   - Accessed via SQLite connection
-   - **This is what the system uses by default**
-
-2. **BACKUP: GitHub Repository**
-   - Demonstration/backup copy
-   - Used if local DB connection fails
-   - Suboptimal for performance
-   - Acts as fallback
+Alternatively,
+Alternatively, `data/raw` and `data/parsed` contains files using at the different step of the indexing pipeline.
+This folder has been kept for reproducability purposes only.
+Be aware that files inside `data/raw` corresponds to a fraction of all files indexed inside `chroma-db/`
 
 ### Database Connection
 
@@ -149,17 +150,6 @@ database = Database(client_path = "./chroma-db/")
 database.client.get_collection(name="database")
 ```
 
-### Module Folder Purpose
-
-⚠ **IMPORTANT:** The `Final/Rag_Core/module/` folder is **REFERENCE ONLY**
-
-- Contains scripts showing how data was originally processed
-- **Already executed** - do not run these again
-- Data is already in ChromaDB
-- Kept for documentation and understanding the pipeline
-
-------------------------------------------------------------------------
-
 ##  Configuration
 
 ### RAGConfig Settings
@@ -169,49 +159,82 @@ Located in `Final/Rag_Core/RAG_Core.py` (around line 50):
 ```python
 class RAGConfig:
     """Centralized configuration for RAG system"""
-    
-    # Folder paths (relative to Rag_Core directory)
-    JSON_FOLDER = "../data/parsed"        # Reference JSONs (demo)
-    PDF_FOLDER = "../data/raw/Materials_code_learning"  # Source PDFs
-    CHROMA_DIR = "../chroma-db"          # Vector database (IMPORTANT!)
-    
+
+    # Folder paths
+    JSON_FOLDER = "../parsed/"
+    PDF_FOLDER = "../data/raw/Materials_code_learning"
+    CHROMA_DIR = "./chroma-db/"
+
     # Models
-    EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-    OLLAMA_MODEL = "llama3.2"            # Change to your preferred model
-    
-    # Processing settings (only for rebuilding)
+    EMBEDDING_MODEL = "Qwen/Qwen3-Embedding-8b"
+    OLLAMA_MODEL = "llama3.2"  # local LLM via Ollama
+
+    # Processing settings
     CHUNK_SIZE = 1500
     CHUNK_OVERLAP = 300
-    
+
     # LLM settings
-    LLM_TEMPERATURE = 0.3                # Lower = more deterministic
-    
+    LLM_TEMPERATURE = 0.3
+
     # Retrieval settings
-    TOP_K = 5                            # Number of documents to retrieve
+    TOP_K = 5
+
+    # RAG-Fusion settings
+    USE_RAG_FUSION = True
+    RRF_K = 60
+    NUM_QUERIES = 4
+
+    # Default course name
+    DEFAULT_COURSE = "Code Examples"
 ```
 
 ### Customizing for Your Data
 
 **If you want to use your own codebase:**
 
-1. **Add your files** to `Final/data/raw/Materials_code_learning/`
-2. **Process them** (if needed):
-   ```python
-   from RAG_Core import create_vectorstore
-   vectorstore, count, status = create_vectorstore(
-       include_pdfs=True, 
-       rebuild=True
-   )
-   ```
-3. **Verify** new embeddings:
-   ```bash
-   python RAG_Core.py
-   ```
+1. Scrape and parse PDFs, Python and R files, as well as Quarto document, Jupyter Notebook and RMarkdown into their JSON counterpart.
 
-**⚠ Warning:** Rebuilding will overwrite your existing ChromaDB!
+```bash
+python3 module/indexing/data_collection.py [from] [course_name] [to]
+```
+*Note*: [course_name] argument is used as metadata information, nothing more.
 
+2. Create your own persistent chroma database using `chromaDB` python library.
 
-------------------------------------------------------------------------
+```python
+import chromadb
+
+client = chromadb.PersistentClient(path="/path/to/save/to")
+```
+
+3. Create a collection inside your newly created database
+
+```
+collection = client.create_collection(name="my_collection")
+```
+
+4. Use the `DataPreprocessor` class and its dedicated routes for each supported extensions to preprocess and index all the parsed JSON files inside your newly created database collection. As this process is chunking and embedding files locally, this might take some time.
+```python
+from module.indexing.database import Database
+from module.indexing.preprocessing import DataPreprocessor
+
+database = Database(client_path="/path/to/save/to")
+
+path_files = [str(child) for child in Path("path/of/your/parsed/data").iterdir()]
+
+preprocessor = DataPreprocessor(path_files, database, collection_name="my_collection")
+
+preprocessor.prepare()
+```
+
+5. Access your newly created database using either the `chromaDB` library or the `Database` dataclass again.
+
+```python
+database = Database(client_path="/path/to/save/to")
+
+database.client.list_collections()
+database.client.get_collection(name="my_collection").count()
+```
 
 ##  Testing & Verification
 
