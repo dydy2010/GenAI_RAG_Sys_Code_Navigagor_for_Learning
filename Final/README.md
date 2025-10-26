@@ -137,18 +137,17 @@ GenAI_RAG_Sys_Code_Navigator_for_Learning/
 
 ### Database Connection
 
-The system connects to ChromaDB using a **local SQLite connection**:
+The system connect to the ChromaDB using the `PersistentClient` class of the
+`chromaDB` python library, wrapped inside a dedicated `Database` dataclass.
+The Chroma database contains a single collection, named database, which contains all of our data.
 
-```
-File: /Users/[username]/path/to/Final/chroma-db/chroma.sqlite3
-URL: jdbc:sqlite:/Users/[username]/path/to/Final/chroma-db/chroma.sqlite3
-Driver: SQLite
-```
+```python
+from module.indexing.database import Database
 
-You can connect to this database using:
-- **PyCharm Database Tools** (see screenshot reference)
-- **DBeaver** or other database clients
-- **Python code** (via ChromaDB client)
+database = Database(client_path = "./chroma-db/")
+
+database.client.get_collection(name="database")
+```
 
 ### Module Folder Purpose
 
