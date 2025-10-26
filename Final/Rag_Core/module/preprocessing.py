@@ -309,7 +309,9 @@ class DataPreprocessor:
     # Starts at 0 and increments with each next() call
     count = itertools.count(0)
 
-    def __init__(self, path_files: list[str], database: Database):
+    def __init__(
+        self, path_files: list[str], database: Database, collection_name="database"
+    ):
         """
         Initialize the DataPreprocessor with file paths and required components.
 
@@ -354,7 +356,7 @@ class DataPreprocessor:
         # User
 
         # Create writer for the "database" collection in ChromaDB
-        self.writer: DatabaseWriter = DatabaseWriter(database, "database")
+        self.writer: DatabaseWriter = DatabaseWriter(database, collection_name)
 
     def prepare(self):
         """
