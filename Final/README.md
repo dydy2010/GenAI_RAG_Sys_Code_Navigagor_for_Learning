@@ -78,35 +78,43 @@ Our system works in several phases:
 
 ##  Project Structure
 
+This `module/` subfolder contains the python code used at each step of the pipeline, as well as the streamlit application `module/streamlit_app.py`. Most notably, `module/rag_core.py` is the main script that runs the RAG system, `module/indexing/` is a sub-folder containins classes and script relevant to the RAG's indexing section. More specifically, `module/indexing/data_collection.py` is a python script that, given specified directories, scrapes for all '.py', '.R', '.ipynb', '.qmd', '.Rmd' and '.pdf' file, collects content and metadata, and finally stores this information inside a JSON file. 
+`module/indexing/database.py` contains classes pertaining to establishing the connection with the Chroma Database `chroma-db/` and writing information to it.
+
+The `chroma-db/` folder contains the vectorized database used throughout the project.
+
+The `data/` folder contains the `raw` and `parsed` data.
+Raw data refers to python, R, Jupyter Notebook, Quarto, RMarkdown document, as well as PDF of the same format. Parsed data refers to JSON files constructed using raw data content and metadata information.
+Additionnaly, this folder also contains the `evaluation_results` of the evaluation pipeline, found in `module/evaluation/`.
+
+`requirements.txt` contains the project's dependencies.
+Be aware that, due to dependencies conflicts, the RAG's evaluation have its own set of dependencies to set up using `module/evaluation/setup_for_eval.sh`
+
 ```
 GenAI_RAG_Sys_Code_Navigator_for_Learning/
-├── Final/
-│   ├── Rag_Core/                      # Main application code
-│   │   ├── module/                    # Reference: Data processing pipeline
-│   │   │   ├── __init__.py           # Package initialization
-│   │   │   ├── data_collection.py    # How data was collected (reference)
-│   │   │   ├── database.py           # How DB was set up (reference)
-│   │   │   └── preprocessing.py      # How data was preprocessed (reference)
-│   │   ├── RAG_Core.py               # Main RAG system (connects to ChromaDB)
-│   │   └── Streamlit_App.py          # Web interface
-│   ├── Evaluation/                    # Evaluation scripts
-│   │   ├── .env                      # API keys (CREATE THIS - not in git)
-│   │   ├── Results/                  # Evaluation outputs
-│   │   ├── Evaluate_Ragas.py         # Main RAGAS evaluation
-│   │   ├── Evaluation_Dataset.py     # Dataset creation
-│   │   ├── Evaluation_Only_RAG_Sys.py
-│   │   ├── setup_for_eval.sh         # Setup for evaluation
-│   ├── data/
-│   │   ├── chroma-db/                # LOCAL Vector database (PRIMARY)
-│   │   │   ├── chroma.sqlite3       # Main database file
-│   │   │   └── [UUID folders]       # Vector embeddings storage
-│   │   ├── parsed/                   # Reference: Original JSON files
-│   │   ├── raw/                      # PDFs and source materials
-│   │   │   └── Materials_code_learning/
-│   │   └── raw_data/                 # Additional raw data
-│   └── README.md
-├── docs/                              # Documentation
-└── test_all_systems_v2.py            # System verification script
+├── README.md
+├── requirement.txt
+├── module/ 
+│   ├── __init__.py
+│   ├── rag_core.py
+│   ├── streamlit_app.py
+│   ├── indexing/
+│   │   ├── __init__.py/
+│   │   ├── data_collection.py
+│   │   ├── preprocessing.py
+│   │   ├── database.py
+│   ├── evaluation/
+│   ├── README.md 
+│   ├── Evaluation_Dataset.py 
+│   ├── check_eval.py 
+│   ├── evaluate_ragas.py 
+│   ├── setup_for_eval.sh 
+│   ├── evaluation_only_rag_sys.sh 
+├── chroma-db/ 
+├── data/ 
+│   ├── raw/ 
+│   ├── parsed/ 
+│   ├── evaluation_results/ 
 ```
 
 ##  Key Concepts
