@@ -91,7 +91,8 @@ This `module/` subfolder contains the python code used at each step of the pipel
 
 The `module/evaluation/` folder contains code and instruction to run the RAG evaluation pipeline. 
 `module/evaluation/setup_for_eval.sh` create a proper python virtual environnement that will be used for the evaluation and install the correct dependencies.
-`module/evaluation/evaluation_only_rag_sys.py` is a script containing the RAG, while `module/evaluation/evaluate_ragas.py` is the evaluation script itself.
+`module/evaluation/evaluation_only_rag_sys.py` is a script containing the RAG, while `module/evaluation/evaluate_ragas.py` is the evaluation script itself. Find more information on the `module/evaluation/README.md` file.
+
 The `chroma-db/` folder contains the vectorized database used throughout the project.
 
 The `data/` folder contains the `raw` and `parsed` data.
