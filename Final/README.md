@@ -236,44 +236,6 @@ database.client.list_collections()
 database.client.get_collection(name="my_collection").count()
 ```
 
-##  Testing & Verification
-
-### Quick System Check
-
-```bash
-# From project root
-python test_all_systems_v2.py
-```
-
-This verifies:
-- ✅ Directory structure
-- ✅ File existence
-- ✅ Python syntax
-- ✅ Module imports
-- ✅ Dependencies
-- ✅ Database files
-- ✅ Data files
-- ✅ Configuration paths
-
-Expected result:
-```
-============================================================
-TEST SUMMARY
-============================================================
-Passed: 40-45
-Failed: 0
-Warnings: 2-5 (only minor/optional)
-
-ALL SYSTEMS OPERATIONAL ✓
-============================================================
-
-##  Evaluation with RAGAS
-
-### Please refer to the Evaluation/README.MD for detailed instructions.
-
-
-------------------------------------------------------------------------
-
 ##  Usage Examples
 
 ### Command Line Interface
