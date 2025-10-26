@@ -280,17 +280,17 @@ python RAG_Core.py
 **Problem:** "Vector store not available"
 
 **Solution:**
+
+This problem often comes when the code cannot locate the Chroma database. 
+In this case, please make sure that the specified database path is the correct one.
+Consider using the absolue path for safety.
+
 ```bash
 # Verify database exists
-ls -la Final/chroma-db/chroma.sqlite3
+ls -la ./chroma-db/chroma.sqlite3
 
 # Check file size (should be > 0)
-du -h Final/chroma-db/chroma.sqlite3
-
-# Test connection
-cd Final/Rag_Core
-python -c "from RAG_Core import load_vectorstore, initialize_embeddings; \
-           load_vectorstore(initialize_embeddings())"
+du -h ./chroma-db/chroma.sqlite3
 ```
 
 #### 3. Ollama Not Running
@@ -298,6 +298,9 @@ python -c "from RAG_Core import load_vectorstore, initialize_embeddings; \
 **Problem:** "Connection refused" or "Ollama not available"
 
 **Solution:**
+
+Verify that you started ollama and that 'Llama3.2' model is downloaded. 
+
 ```bash
 # Start Ollama
 ollama serve
@@ -316,7 +319,7 @@ ollama pull llama3.2
 **Solution:**
 ```bash
 # Use different port
-streamlit run Streamlit_App.py --server.port 8502
+streamlit run streamlit_app.py --server.port 8502
 
 # Or kill existing process
 lsof -ti:8501 | xargs kill -9
@@ -327,35 +330,37 @@ lsof -ti:8501 | xargs kill -9
 **Problem:** "File not found" errors
 
 **Solution:**
+
+Make sure that the file path used are correct.
+For any doubt, use the absolute file paths.
+
 ```python
 # In RAG_Core.py, use relative paths:
 JSON_FOLDER = "../data/parsed"
 PDF_FOLDER = "../data/raw/Materials_code_learning"
 CHROMA_DIR = "../chroma-db"
-
-# Always run from: Final/Rag_Core/
 ```
 
 ### Getting Help
 
 If issues persist:
-1. Run: `python test_all_systems_v2.py`
-2. Check error messages carefully
-3. Verify all paths are correct
-4. Ensure Ollama is running
-5. Check ChromaDB file exists and is not empty
+1. Check error messages carefully
+2. Verify all paths are correct
+3. Ensure Ollama is running
+4. Check ChromaDB file exists and is not empty
 
+If nothing works, consider contacting use via email.
 
 ------------------------------------------------------------------------
 
 ### System Components
 
-1. **Embeddings** (sentence-transformers/all-MiniLM-L6-v2/Qwen)
+1. **Embeddings** (Qwen/Qwen-Embedding-8b)
    - Converts text to 384-dimensional vectors
    - Enables semantic search
    - Cached for efficiency
 
-2. **Vector Database** (ChromaDB + SQLite)
+2. **Vector Database** (ChromaDB)
    - Stores document embeddings
    - Enables fast similarity search
    - Persists on disk
