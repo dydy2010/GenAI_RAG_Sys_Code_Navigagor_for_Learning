@@ -1,20 +1,76 @@
 # RAG Evaluation System
 
-##  Quick Start
+## Quick Start
 
 ```bash
-# 1. Setup (one time)
+# From the project root
 cd Final/Evaluation
+chmod +x setup_for_eval.sh  # Only needed once
+./setup_for_eval.sh # run this to execute the eval system
+```
+
+## What it does: setup_for_eval.sh
+1. **Environment Setup**:
+   - Creates two isolated virtual environments, and .env file:
+     - `.venv_rag_sys`: For RAG mock up system (ChromaDB, sentence-transformers)
+     - `.venv_eval`: For evaluation (RAGAS, OpenAI)
+     - `.env`: For openai key, please put your key ther
+
+2. **RAG System Execution**:
+   - Builds/loads the Chroma vector store
+   - Generates `responses.json` with RAG responses to test questions
+
+3. **Evaluation**:
+   - Loads responses from `responses.json`
+   - Runs RAGAS evaluation (if `OPENAI_API_KEY` is set in `.env`)
+   - Saves results to 2 timestamped CSV files
+
+## File Structure
+
+```
+Evaluation/
+├── .venv_rag_sys/    # RAG system environment
+├── .venv_eval/       # Evaluation environment
+├── responses.json    # Generated RAG responses
+├── ragas_*_report.csv  # Evaluation results
+├── evaluation_only_rag_sys.py  # RAG system implementation
+├── evaluate_ragas.py           # RAGAS evaluation
+└── setup_for_eval.sh           # Setup script
+```
+
+## Usage
+
+### Full Setup & Run
+```bash
+# Run everything (setup + evaluation)
 ./setup_for_eval.sh
+```
+
+### Re-run Evaluation Only
+```bash
 source .venv_eval/bin/activate
+python evaluate_ragas.py
+deactivate
+```
 
-# 2. Add your OpenAI API key
-echo "OPENAI_API_KEY=sk-your-actual-key" > .env
+### Regenerate Responses
+```bash
+source .venv_rag_sys/bin/activate
+BATCH_EVAL=1 python evaluation_only_rag_sys.py
+deactivate
+```
 
-# 3. First evaluation (generates + evaluates)
-python3 evaluate_ragas_improved.py --generate
+## Requirements
 
-# 4. Future evaluations (fast! uses saved responses)
+- Python 3.8+
+- `OPENAI_API_KEY` in `.env` for evaluation
+- Sufficient disk space for vector store
+
+## Notes
+
+- The RAG system and evaluator run in separate environments to avoid dependency conflicts
+- `responses.json` acts as the bridge between RAG generation and evaluation
+- Evaluation metrics include faithfulness, answer relevancy, and context precision/recall
 python3 evaluate_ragas_improved.py
 ```
 

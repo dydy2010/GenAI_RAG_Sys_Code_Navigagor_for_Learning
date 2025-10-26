@@ -26,6 +26,8 @@ https://docs.ragas.io/en/stable/
 # pip install openai
 
 import os
+import json
+from pathlib import Path
 import pandas
 # Limit ragas to 2 parallel jobs to prevent system overload
 os.environ["RAGAS_EVAL_THREADS"] = "1"
@@ -41,52 +43,74 @@ from ragas.metrics import (
     context_precision,
     answer_correctness,
 )
-# Import the necessary LLM and embedding models for Ragas configuration
-from langchain_community.llms import Ollama
-from langchain_huggingface import HuggingFaceEmbeddings
+# Import the necessary LLMs for Ragas configuration (OpenAI used below)
 
 #%% Cell 2
-# 1. Import restructured RAG_sys and test data
+# 1. Import test data and set up evaluation
 # ------------------------------------------------------------------
-print("Importing RAG_sys_eval_only and eval dataset...")
+print("Setting up evaluation...")
 
-from evaluation_only_rag_sys import setup_rag_chain, OLLAMA_MODEL, EMBEDDING_MODEL
 from Evaluation_Dataset import test_questions
 
-# Initialize the RAG chain once
-qa_chain = setup_rag_chain()
-print("✓ RAG chain is ready.")
+# Mock the RAG chain functionality for evaluation
+def get_rag_response(question):
+    """
+    This function should be replaced with your actual RAG system's response function.
+    For now, it returns a mock response.
+    """
+    return {
+        'query': question,
+        'result': f"This is a mock response to: {question}",
+        'source_documents': [
+            {
+                'page_content': f"Context related to: {question}",
+                'metadata': {'source': 'mock_source.pdf', 'page': 1}
+            }
+        ]
+    }
+
+print("✓ Evaluation setup complete.")
 
 #%% Cell 3
-# 2. Run RAG system on the test questions with progress bar
+# 2. Build responses: prefer recorded file, else generate
 # ------------------------------------------------------------------
-print("\nRunning RAG system on test questions...")
+print("\nBuilding responses for evaluation...")
 responses = []
-# Use tqdm for progress bar
-for item in tqdm(test_questions, desc="Processing questions"):
-    try:
-        question = item["question"]
-        result = qa_chain.invoke({"query": question}) # Get the response from the RAG chain
-
-        # Collect the results
-        responses.append({
-            "question": question,
-            "answer": result.get("result", ""),
-            "contexts": [doc.page_content for doc in result.get("source_documents", [])],
-            "ground_truth": item["ground_truth"],
-            # CRITICAL FIX: Changed "ground_truth_contexts" to "ground_truth_context"
-            "ground_truth_context": item["ground_truth_context"]
-        })
-    except Exception as e:
-        print(f"\nError processing question '{item['question']}': {e}")
-        # Optionally, append a failed record
-        responses.append({
-            "question": item["question"],
-            "answer": f"ERROR: {e}",
-            "contexts": [],
-            "ground_truth": item["ground_truth"],
-            "ground_truth_context": item["ground_truth_context"]
-        })
+resp_path = (Path(__file__).parent / "responses.json").resolve()
+if resp_path.exists():
+    print(f"Found recorded responses: {resp_path}. Loading...")
+    with open(resp_path, 'r', encoding='utf-8') as f:
+        responses = json.load(f)
+else:
+    print("No recorded responses.json found. Generating responses now...")
+    # Use tqdm for progress bar
+    for item in tqdm(test_questions, desc="Processing questions"):
+        try:
+            question = item["question"]
+            # Get RAG response
+            result = get_rag_response(question)
+            
+            # Extract the response and context
+            response = result["result"]
+            retrieved_contexts = [doc['page_content'] for doc in result["source_documents"]]
+            
+            # Collect the results
+            responses.append({
+                "question": question,
+                "answer": response,
+                "contexts": retrieved_contexts,
+                "ground_truth": item["ground_truth"],
+                "ground_truth_context": item["ground_truth_context"]
+            })
+        except Exception as e:
+            print(f"\nError processing question '{item['question']}': {e}")
+            responses.append({
+                "question": item["question"],
+                "answer": f"ERROR: {e}",
+                "contexts": [],
+                "ground_truth": item["ground_truth"],
+                "ground_truth_context": item["ground_truth_context"]
+            })
 
 print(f"✓ Processed {len(responses)} questions.")
 
@@ -115,13 +139,14 @@ print(dataset)
 print("Configuring Ragas with OpenAI API...")
 
 from langchain_openai import ChatOpenAI
-
-# Set your OpenAI API key
-os.environ["OPENAI_API_KEY"] = "Replace with your key"
-# Replace with your key
+from langchain_huggingface import HuggingFaceEmbeddings
 
 # Use faster, cheaper model for evaluation
 EVAL_LLM_MODEL = "gpt-4-turbo"  # or "gpt-5" if need higher quality
+
+# Embedding model for RAGAS context comparisons (align with RAG system default)
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+# for more similar embedding model as rag core, use Qwen, if you have more powerful computer
 
 ragas_llm = ChatOpenAI(model=EVAL_LLM_MODEL)
 ragas_embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)

@@ -1,27 +1,48 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
+## CodeRAG
+
+- **What it is**: RAG app to query your study code/PDFs with sources, for data science students.
+- **LLM**: Ollama (default: `llama3.2`), Qwen, OpenAI API
+- **Vector DB**: Chroma .
+- **Evaluation**: RAGAS
+- **Data**: PDFs and source materials from university courses.
+
+### Requirements
+- Python, Ollama running (`ollama serve`), model pulled: `ollama pull llama3.2`.
+- Optional: OpenAI key for evaluation (`Final/Evaluation/.env`).
+
+### Quick Start (App)
+```bash
+cd Final/Rag_Core
+python RAG_Core.py            # CLI test
+streamlit run Streamlit_App.py  # Web UI at http://localhost:8501
+```
+
+### Evaluate with RAGAS (optional)
+```bash
+cd Final/Evaluation
+./setup_for_eval.sh           # creates venvs, generates responses.json, runs eval
+```
+Outputs: CSVs in `Final/Evaluation`.
+
+### Data paths (relative to Final/)
+- Vector store: `data/chroma_db` (Rag_Core uses `../chroma-db`)
+- Parsed JSON: `data/parsed`
+- PDFs: `data/raw/Materials_code_learning`
+
+GitHub: https://github.com/dydy2010/GenAI_RAG_Sys_Code_Navigagor_for_Learning
 
 # CodeRAG: The AI-Powered Code Navigator for Data Science Students
 
-**CodeRAG** is an intelligent code navigation system designed to help
-developers and data science students understand complex personal
+**CodeRAG** is an intelligent code navigation system designed to help developers and data science students understand complex personal
 educational codebases. Using Retrieval-Augmented Generation (RAG)
-architecture, this tool allows users to ask questions about source code
-in natural language and receive accurate, context-aware answers grounded
-in their study materials.
+architecture, this tool allows users to ask questions about source code in natural language and receive accurate, context-aware answers grounded in their study materials.
 
 ------------------------------------------------------------------------
 
 ##  The Problem
 
 Navigating large, messy learning materials for coding is a major
-challenge for students. After semesters of accumulating materials, it becomes 
-difficult to search for the exact code or lecture related to a specific
-knowledge point. Current LLMs like ChatGPT cannot ingest all files and find 
-precise university-specific context from lectures.
+challenge for students. After semesters of accumulating materials, it becomes difficult to search for the exact code or lecture related to a specific knowledge point. Current LLMs like ChatGPT cannot ingest all files and find precise university-specific context from lectures.
 
 Students waste time manually piecing together information, slowing
 down their learning process.
@@ -71,12 +92,10 @@ GenAI_RAG_Sys_Code_Navigator_for_Learning/
 │   ├── Evaluation/                    # Evaluation scripts
 │   │   ├── .env                      # API keys (CREATE THIS - not in git)
 │   │   ├── Results/                  # Evaluation outputs
-│   │   ├── check_eval.py             # Verification script
 │   │   ├── Evaluate_Ragas.py         # Main RAGAS evaluation
 │   │   ├── Evaluation_Dataset.py     # Dataset creation
 │   │   ├── Evaluation_Only_RAG_Sys.py
-│   │   ├── RAG_Core_Compat.py
-│   │   └── requirements_eval.txt     # Evaluation dependencies
+│   │   ├── setup_for_eval.sh         # Setup for evaluation
 │   ├── data/
 │   │   ├── chroma-db/                # LOCAL Vector database (PRIMARY)
 │   │   │   ├── chroma.sqlite3       # Main database file
@@ -94,7 +113,7 @@ GenAI_RAG_Sys_Code_Navigator_for_Learning/
 
 ### Data Storage Architecture
 
-**Your data lives in TWO places:**
+**Data lives in TWO places:**
 
 1. **PRIMARY: Local ChromaDB** (`Final/chroma-db/`)
    - Main production database
@@ -131,128 +150,6 @@ You can connect to this database using:
 - **Already executed** - do not run these again
 - Data is already in ChromaDB
 - Kept for documentation and understanding the pipeline
-
-------------------------------------------------------------------------
-
-##  Quick Start for New Users
-
-### Prerequisites
-
-**Required:**
-- Python 3.8+
-- Ollama installed and running
-- ~2GB disk space for ChromaDB
-
-**Optional:**
-- OpenAI API key (for evaluation only)
-- PyCharm or VS Code (recommended)
-
-### Step 1: Install Ollama
-
-```bash
-# macOS
-brew install ollama
-
-# Linux
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Windows
-# Download from https://ollama.com/download
-```
-
-Start Ollama:
-```bash
-ollama serve
-```
-
-Pull the model:
-```bash
-ollama pull llama3.2
-```
-
-### Step 2: Clone and Navigate
-
-```bash
-git clone [your-repo-url]
-cd GenAI_RAG_Sys_Code_Navigator_for_Learning/Final/Rag_Core
-```
-
-### Step 3: Install Dependencies
-
-```bash
-# Core dependencies
-pip install langchain langchain-core langchain-community
-pip install langchain-text-splitters langchain-huggingface
-pip install chromadb streamlit pandas numpy sentence-transformers
-
-# Or use requirements file if available
-pip install -r requirements.txt
-```
-
-### Step 4: Verify Database Connection
-
-Before verifying the database, ensure you have downloaded the project ZIP file and extracted it locally. The ChromaDB files are included within this ZIP archive.
-
-1. **Download the ZIP file**
-   - Go to your repository or the provided project link.
-   - Click on “Download ZIP” and extract it to a local folder.
-
-2. **Locate the ChromaDB directory**
-   - Inside the extracted folder, navigate to:
-     ```
-     Final/chroma-db/
-     ```
-   - This folder should contain the `chroma.sqlite3` database file and additional folders with UUIDs for vector embeddings.
-
-3. **Establish the local connection**
-   - In PyCharm, go to **View → Tool Windows → Database**.
-   - Add a **new SQLite data source** and connect it to:
-     ```
-     Final/chroma-db/chroma.sqlite3
-     ```
-   - Test the connection to confirm it works.
-
-
-**Database path configuration:**
-- Open `RAG_Core.py`
-- Find `RAGConfig` class (around line 55)
-- Verify `CHROMA_DIR = "../chroma-db"` (relative path)
-- Verify `JSON_FOLDER = "../data/parsed"` (for demos)
-
-### Step 5: Test the System
-
-```bash
-# Test ChromaDB connection
-python RAG_Core.py
-```
-
-Expected output:
-```
-✓ Using HuggingFace embeddings: sentence-transformers/all-MiniLM-L6-v2
-✓ Loaded vector store with XXXX documents from ../chroma-db
-✓ Vector store stats: {...}
-✓ Test query successful
-```
-
-### Step 6: Launch Web Interface
-
-```bash
-streamlit run Streamlit_App.py
-```
-
-Open browser to: `http://localhost:8501`
-
-You should see:
--  System Ready (green indicator)
-- Document count displayed
-- Chat interface ready
-
-### Step 7: Ask Your First Question!
-
-Try asking:
-- "How do I create a pandas DataFrame?"
-- "Show me examples of for loops in Python"
-- "What is the difference between lists and tuples?"
 
 ------------------------------------------------------------------------
 
@@ -306,61 +203,6 @@ class RAGConfig:
 
 **⚠ Warning:** Rebuilding will overwrite your existing ChromaDB!
 
-------------------------------------------------------------------------
-
-## ️ Database Connection Setup
-
-### Using PyCharm Database Tools
-
-1. **Open Database Tool Window**
-   - View → Tool Windows → Database
-   - Or press `⌘ + Shift + A` and search "Database"
-
-2. **Add Data Source**
-   - Click `+` → Data Source → SQLite
-   
-3. **Configure Connection**
-   - **Name:** `Chroma-db` (or any name)
-   - **Driver:** SQLite
-   - **File:** Browse to `Final/chroma-db/chroma.sqlite3`
-   
-   Example path:
-   ```
-   /Users/yourname/path/to/Final/chroma-db/chroma.sqlite3
-   ```
-
-4. **Test Connection**
-   - Click "Test Connection"
-   - Should show: "SQLite 3.45.1" or similar
-   - Click "OK" to save
-
-5. **Explore Database**
-   - Expand connection → schemas → tables
-   - You should see ChromaDB tables:
-     - `collections`
-     - `embeddings`
-     - `metadata`
-     - etc.
-
-### Connection URL Format
-
-```
-jdbc:sqlite:/absolute/path/to/Final/chroma-db/chroma.sqlite3
-```
-
-### Troubleshooting Database Connection
-
-**Issue:** "Database file is locked"
-- **Solution:** Close Streamlit/RAG_Core if running
-- SQLite allows only one writer at a time
-
-**Issue:** "No such table: collections"
-- **Solution:** ChromaDB not initialized properly
-- Run `python RAG_Core.py` to verify
-
-**Issue:** "File not found"
-- **Solution:** Use absolute path
-- Verify file exists: `ls -la Final/chroma-db/chroma.sqlite3`
 
 ------------------------------------------------------------------------
 
@@ -394,31 +236,6 @@ Warnings: 2-5 (only minor/optional)
 
 ALL SYSTEMS OPERATIONAL ✓
 ============================================================
-```
-
-### Individual Component Tests
-
-```bash
-cd Final/Rag_Core
-
-# Test 1: ChromaDB connection
-python -c "from RAG_Core import load_vectorstore, initialize_embeddings; \
-           emb = initialize_embeddings(); \
-           vs = load_vectorstore(emb); \
-           print(f'✓ Connected: {vs._collection.count()} documents')"
-
-# Test 2: Imports
-python -c "from module import data_collection, database, preprocessing; \
-           print('✓ All modules imported')"
-
-# Test 3: Full system
-python RAG_Core.py
-
-# Test 4: Web interface
-streamlit run Streamlit_App.py
-```
-
-------------------------------------------------------------------------
 
 ##  Evaluation with RAGAS
 
@@ -446,26 +263,8 @@ print(f"Sources: {len(result['source_documents'])}")
 ```
 
 ### Web Interface Features
+**Chat Interface**
 
-1. **Chat Interface**
-   - Natural language queries
-   - Streaming responses
-   - Conversation history
-
-2. **Source Attribution**
-   - Toggle to show/hide sources
-   - Code preview with syntax highlighting
-   - File type and language tags
-
-3. **System Status**
-   - Document count
-   - Model information
-   - Database statistics
-
-4. **Quick Actions**
-   - List all files
-   - Clear chat history
-   - Rebuild index (if needed)
 
 ------------------------------------------------------------------------
 
@@ -545,23 +344,6 @@ CHROMA_DIR = "../chroma-db"
 # Always run from: Final/Rag_Core/
 ```
 
-#### 6. Evaluation Setup Issues
-
-**Problem:** "OpenAI API key not found"
-
-**Solution:**
-```bash
-cd Final/Evaluation
-
-# Create .env file
-cat > .env << 'EOF'
-OPENAI_API_KEY=sk-your-actual-key-here
-EOF
-
-# Verify
-cat .env
-```
-
 ### Getting Help
 
 If issues persist:
@@ -571,82 +353,12 @@ If issues persist:
 4. Ensure Ollama is running
 5. Check ChromaDB file exists and is not empty
 
-------------------------------------------------------------------------
-
-##  Updating and Maintaining
-
-### Adding New Data
-
-**To add more code examples or PDFs:**
-
-```bash
-# 1. Add files to the appropriate directory
-cp your_new_code.py Final/data/raw/Materials_code_learning/
-cp your_lecture.pdf Final/data/raw/Materials_code_learning/
-
-# 2. Rebuild the index (WARNING: overwrites existing data)
-cd Final/Rag_Core
-python -c "from RAG_Core import create_vectorstore; \
-           create_vectorstore(include_pdfs=True, rebuild=True)"
-
-# 3. Verify new documents
-python RAG_Core.py
-```
-
-### Backing Up Your Database
-
-```bash
-# Create backup
-cp -r Final/chroma-db Final/chroma-db.backup_$(date +%Y%m%d)
-
-# Verify backup
-ls -lh Final/chroma-db.backup_*
-```
-
-### Model Updates
-
-**To use a different Ollama model:**
-
-```bash
-# 1. Pull new model
-ollama pull mistral
-
-# 2. Update RAG_Core.py
-# Change: OLLAMA_MODEL = "llama3.2"
-# To: OLLAMA_MODEL = "mistral"
-
-# 3. Restart application
-```
 
 ------------------------------------------------------------------------
-
-##  Understanding the System
-
-### Data Flow
-
-```
-User Query
-    ↓
-Streamlit_App.py / RAG_Core.py
-    ↓
-load_vectorstore() ─────→ Final/chroma-db/ (local SQLite)
-    ↓                            ↓
-Embedding Model                 Retrieve relevant chunks
-    ↓                            ↓
-Semantic Search ←────────────── Vector similarity
-    ↓
-Retrieved Context (top K documents)
-    ↓
-Ollama LLM (llama3.2)
-    ↓
-Generated Answer (grounded in context)
-    ↓
-Response to User
-```
 
 ### System Components
 
-1. **Embeddings** (sentence-transformers/all-MiniLM-L6-v2)
+1. **Embeddings** (sentence-transformers/all-MiniLM-L6-v2/Qwen)
    - Converts text to 384-dimensional vectors
    - Enables semantic search
    - Cached for efficiency
@@ -716,54 +428,6 @@ We welcome contributions! Areas we need help with:
 
 ------------------------------------------------------------------------
 
-##  Data Format
-
-### JSON Code Files (Reference)
-
-```json
-{
-  "file_name": "example.py",
-  "content": "def hello():\n    print('Hello World')",
-  "language": "python",
-  "course": "Python for Data Science",
-  "week": 1
-}
-```
-
-### PDF Files
-
-Place PDFs in `Final/data/raw/Materials_code_learning/` with any structure:
-```
-Materials_code_learning/
-├── Python for data science/
-│   ├── week1/
-│   │   └── lecture.pdf
-│   └── week2/
-└── Machine Learning 1/
-    └── lesson1/
-        └── slides.pdf
-```
-
-------------------------------------------------------------------------
-
-##  Documentation
-
-### Additional Resources
-
-- **SIMPLE_FINAL_GUIDE.md** - Quick start guide
-- **FINAL_UNDERSTANDING.md** - System architecture deep dive
-- **EVALUATION_QUICK_START.md** - Evaluation setup
-- **EVALUATION_SETUP_GUIDE.md** - Complete evaluation reference
-- **test_all_systems_v2.py** - Verification script
-
-### Project Links
-
-- GitHub Repository: [your-repo-url]
-- Documentation: See `docs/` folder
-- Issue Tracker: [your-issues-url]
-
-------------------------------------------------------------------------
-
 ##  Authors
 
 - **Cyriel Van Helleputte**
@@ -771,18 +435,6 @@ Materials_code_learning/
 - **Robin Ramiro Díez-Liébana**
 - **Dongyuan Gao**
 
-------------------------------------------------------------------------
-
-##  Acknowledgments
-
-This project was made possible by:
-
-- **LangChain** - RAG framework and orchestration
-- **Ollama** - Local LLM inference
-- **ChromaDB** - Vector database storage
-- **Streamlit** - Interactive web interface
-- **HuggingFace** - Embedding models and transformers
-- **RAGAS** - Evaluation framework
 
 ------------------------------------------------------------------------
 
@@ -796,113 +448,4 @@ in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software.
 
-------------------------------------------------------------------------
-
-##  Support & Contact
-
-### For Technical Issues
-
-1. **Check troubleshooting section** above
-2. **Run test suite:** `python test_all_systems_v2.py`
-3. **Verify configuration:** Check `RAGConfig` in `RAG_Core.py`
-4. **Database connection:** Verify ChromaDB exists and is accessible
-5. **Open an issue** on GitHub with error details
-
-### For Questions
-
-- Check documentation in `docs/` folder
-- Review code comments in source files
-- See example usage in `RAG_Core.py`
-
-### Performance Issues
-
-- Reduce `TOP_K` for faster retrieval
-- Use smaller embedding model
-- Switch to lighter Ollama model
-- Reduce `CHUNK_SIZE` for less memory usage
-
-------------------------------------------------------------------------
-
-##  Pre-Launch Checklist
-
-Before deploying or demonstrating:
-
-```
-Setup:
-[ ] Ollama installed and running
-[ ] ollama pull llama3.2 completed
-[ ] Python 3.8+ installed
-[ ] All dependencies installed
-
-Database:
-[ ] ChromaDB exists at Final/chroma-db/
-[ ] Database file not empty (>100MB typical)
-[ ] Can connect via PyCharm/DBeaver
-[ ] Document count > 0
-
-Configuration:
-[ ] RAG_Core.py paths are relative
-[ ] CHROMA_DIR = "../chroma-db"
-[ ] JSON_FOLDER = "../data/parsed"
-[ ] PDF_FOLDER points to your materials
-
-Testing:
-[ ] test_all_systems_v2.py passes
-[ ] python RAG_Core.py works
-[ ] streamlit run Streamlit_App.py works
-[ ] Can ask questions and get answers
-[ ] Sources are displayed correctly
-
-Evaluation (Optional):
-[ ] .env file created in Final/Evaluation/
-[ ] OpenAI API key configured
-[ ] check_eval.py passes
-[ ] Can run Evaluate_Ragas.py
-```
-
-------------------------------------------------------------------------
-
-##  Quick Reference
-
-### Essential Commands
-
-```bash
-# Start Ollama
-ollama serve
-
-# Run main application
-cd Final/Rag_Core
-python RAG_Core.py
-
-# Launch web interface
-streamlit run Streamlit_App.py
-
-# Run tests
-cd ../..
-python test_all_systems_v2.py
-
-# Run evaluation
-cd Final/Evaluation
-python check_eval.py
-python Evaluate_Ragas.py
-```
-
-### Important File Locations
-
-- **Main app:** `Final/Rag_Core/RAG_Core.py`
-- **Web UI:** `Final/Rag_Core/Streamlit_App.py`
-- **Database:** `Final/chroma-db/chroma.sqlite3`
-- **Config:** `RAGConfig` class in `RAG_Core.py`
-- **Tests:** `test_all_systems_v2.py`
-- **Evaluation:** `Final/Evaluation/`
-
-------------------------------------------------------------------------
-
-**Version:** 1.0  
-**Last Updated:** October 2025  
-**Status:** Production Ready  
-**Powered by:** LangChain 0.3+ | Ollama (llama3.2) | ChromaDB | Streamlit
-
----
-
-*Happy coding and learning! 🚀*
+*Learned a lot in GenAI! 🚀*

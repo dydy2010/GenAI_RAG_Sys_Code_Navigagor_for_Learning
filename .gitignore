@@ -2,6 +2,8 @@
 # Never commit your API keys or other secrets
 .env
 Final/Evaluation/.env
+├── .venv_rag_sys/    # RAG mock up system environment
+├── .venv_eval/       # Evaluation environment
 
 # 2. Virtual Environments
 # Ignore all virtual environment folders (we've used a few!)

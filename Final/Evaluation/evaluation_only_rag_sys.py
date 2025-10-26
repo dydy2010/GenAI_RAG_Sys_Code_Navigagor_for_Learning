@@ -16,7 +16,6 @@ import os
 import json
 from pathlib import Path
 from langsmith import traceable
-from langchain.chains import RetrievalQA
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -26,12 +25,10 @@ from langchain_community.llms import Ollama
 from langchain_core.prompts import PromptTemplate
 
 # --- Prerequisite ---
-# LangSmith Configuration
-# please at the end of this script give your YOUR_API_KEY: os.environ['LANGCHAIN_API_KEY'] = 'YOUR_API_KEY'
 
-PARSED_JSON_FOLDER = "data/parsed"
-PDF_FOLDER = "data/raw/Materials_code_learning"
-CHROMA_DIR = "data/chroma_db"
+PARSED_JSON_FOLDER = "../data/parsed"
+PDF_FOLDER = "../data/raw/Materials_code_learning"
+CHROMA_DIR = "../data/chroma_db"
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 OLLAMA_MODEL = "llama3.2"
 DEFAULT_COURSE = "RAG ALIN"
@@ -43,7 +40,7 @@ def process_json_files(json_folder: str):
     json_path = Path(json_folder)
     json_files = list(json_path.glob("*.json"))
     all_chunks = []
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, separators=["\n\nclass ", "\n\ndef ", "\n\n", "\n", " ", ""])
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=50, chunk_overlap=0, separators=["\n\nclass ", "\n\ndef ", "\n\n", "\n", " ", ""])
     for json_file in json_files:
         try:
             with open(json_file, 'r', encoding='utf-8') as f: data = json.load(f)
@@ -61,7 +58,7 @@ def process_pdfs(pdf_folder: str):
     pdf_path = Path(pdf_folder)
     pdf_files = list(pdf_path.glob("**/*.pdf"))
     all_chunks = []
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, separators=["\n\n", "\n", " ", ""])
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=50, chunk_overlap=0, separators=["\n\n", "\n", " ", ""])
     for pdf_file in pdf_files:
         try:
             loader = PyMuPDFLoader(str(pdf_file))
@@ -111,7 +108,7 @@ def setup_rag_chain():
         print("✅ Vector store created successfully!")
 
     # Initialize Ollama LLM
-    llm = Ollama(model=OLLAMA_MODEL, temperature=0.7)
+    llm = Ollama(model=OLLAMA_MODEL, temperature=0.3)
 
     # Create custom prompt
     prompt_template = """You are a helpful assistant answering questions based on course materials and code.
@@ -125,32 +122,81 @@ Question: {question}
 Answer: """
     PROMPT = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
 
-    # Create retrieval chain
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="stuff",
-        retriever=vectorstore.as_retriever(search_kwargs={"k": 5}),
-        return_source_documents=True,
-        chain_type_kwargs={"prompt": PROMPT}
-    )
+    # Create a simple QA wrapper compatible with .invoke({"query": ...})
+    class SimpleQA:
+        def __init__(self, llm, vectorstore, prompt):
+            self.llm = llm
+            self.retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+            self.prompt = prompt
 
+        def invoke(self, inputs):
+            query = inputs.get("query", "")
+            # Support both older and newer retriever 
+            if hasattr(self.retriever, "get_relevant_documents"):
+                docs = self.retriever.get_relevant_documents(query)
+            else:
+                docs = self.retriever.invoke(query)
+            context = "\n\n".join([d.page_content for d in docs])
+            prompt_text = self.prompt.format(context=context, question=query)
+            answer = self.llm.invoke(prompt_text)
+            if not isinstance(answer, str):
+                answer = str(answer)
+            return {"result": answer, "source_documents": docs}
+
+    qa = SimpleQA(llm=llm, vectorstore=vectorstore, prompt=PROMPT)
     print("✓ RAG chain setup complete.")
-    return qa_chain
+    return qa
 
 # --- Main execution block (for running this file directly) ---
 if __name__ == '__main__':
-    # This block allows you to still run this file to test the RAG system directly
+    # This block allows you to still run this file to test the RAG system directly,optional
     # Set up LangSmith if you haven't set it in your environment
-    os.environ['LANGCHAIN_TRACING_V2'] = 'true'
-    os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
-    os.environ['LANGCHAIN_API_KEY'] = 'Replace with your key'
-    os.environ['LANGCHAIN_PROJECT'] = 'rag-project'
+    #os.environ['LANGCHAIN_TRACING_V2'] = 'true'
+    #os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
+    #os.environ['LANGCHAIN_API_KEY'] = 'Replace with your key'
+    #os.environ['LANGCHAIN_PROJECT'] = 'rag-project'
 
     my_qa_chain = setup_rag_chain()
 
-    # Test query
-    print("\n--- Testing the RAG chain ---")
-    question = "How do I create a pandas dataframe?"
-    print(f"\n🔍 Question: {question}\n")
-    result = my_qa_chain.invoke({"query": question})
-    print(f"💡 Answer:\n{result['result']}\n")
+
+    if os.environ.get('BATCH_EVAL', '0') == '1':
+        try:
+            from Evaluation_Dataset import test_questions
+        except Exception as e:
+            print(f"✗ Failed to import test questions: {e}")
+            raise    # Batch evaluation mode: generate responses.json for evaluation
+
+        print("\n--- Generating responses.json for evaluation ---")
+        responses = []
+        for item in test_questions:
+            try:
+                q = item.get("question", "")
+                r = my_qa_chain.invoke({"query": q})
+                responses.append({
+                    "question": q,
+                    "answer": r.get("result", ""),
+                    "contexts": [doc.page_content for doc in r.get("source_documents", [])],
+                    "ground_truth": item.get("ground_truth", ""),
+                    "ground_truth_context": item.get("ground_truth_context", []),
+                })
+            except Exception as e:
+                print(f"Error processing question '{item.get('question','')}': {e}")
+                responses.append({
+                    "question": item.get("question", ""),
+                    "answer": f"ERROR: {e}",
+                    "contexts": [],
+                    "ground_truth": item.get("ground_truth", ""),
+                    "ground_truth_context": item.get("ground_truth_context", []),
+                })
+
+        out_path = Path(__file__).parent / "responses.json"
+        with open(out_path, 'w', encoding='utf-8') as f:
+            json.dump(responses, f, ensure_ascii=False, indent=2)
+        print(f"✅ Wrote {len(responses)} responses to {out_path}")
+    else:
+        # Simple smoke test
+        print("\n--- Testing the RAG chain ---")
+        question = "How do I create a pandas dataframe?"
+        print(f"\n🔍 Question: {question}\n")
+        result = my_qa_chain.invoke({"query": question})
+        print(f"💡 Answer:\n{result['result']}\n")
