@@ -25,9 +25,11 @@ from langchain_community.llms import Ollama
 from langchain_core.prompts import PromptTemplate
 
 # --- Prerequisite ---
+BASE_DIR = Path(__file__).parent
+REPO_ROOT = BASE_DIR.parents[1]
 
-PARSED_JSON_FOLDER = "./data/parsed"
-PDF_FOLDER = "./data/raw/Materials_code_learning"
+PARSED_JSON_FOLDER = str(REPO_ROOT / "data" / "parsed")
+PDF_FOLDER = str(REPO_ROOT / "data" / "raw" / "Materials_code_learning")
 CHROMA_DIR = "./chroma_db"
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 OLLAMA_MODEL = "llama3.2"
@@ -125,13 +127,26 @@ def setup_rag_chain():
         print("🛠️ No existing vector store found. Building a new one...")
         # Process all documents
         print("Processing source documents...")
+        # Log and validate data paths
+        print(f"Using parsed JSON folder: {PARSED_JSON_FOLDER}")
+        print(f"Using PDF folder: {PDF_FOLDER}")
+        parsed_path = Path(PARSED_JSON_FOLDER)
+        pdf_path = Path(PDF_FOLDER)
+        if not parsed_path.exists():
+            raise FileNotFoundError(f"Parsed JSON folder not found: {parsed_path}")
+        if not pdf_path.exists():
+            raise FileNotFoundError(f"PDF folder not found: {pdf_path}")
+        json_count_dbg = len(list(parsed_path.glob("*.json")))
+        pdf_count_dbg = len(list(pdf_path.glob("**/*.pdf")))
+        print(f"Discovered files -> JSON: {json_count_dbg}, PDFs: {pdf_count_dbg}")
         code_chunks = process_json_files(PARSED_JSON_FOLDER)
         pdf_chunks = process_pdfs(PDF_FOLDER)
         all_documents = code_chunks + pdf_chunks
 
         if not all_documents:
             raise ValueError(
-                "No documents were processed. Check your data folders and processing functions."
+                "No documents were processed. Check your data folders and processing functions. "
+                f"(JSON dir: {PARSED_JSON_FOLDER}, PDF dir: {PDF_FOLDER})"
             )
 
         # Create and persist the vector store

@@ -4,7 +4,7 @@
 
 ```bash
 # From the project root
-cd Final/Evaluation
+cd pipeline/evaluation
 chmod +x setup_for_eval.sh  # Only needed once
 ./setup_for_eval.sh # run this to execute the eval system
 ```
